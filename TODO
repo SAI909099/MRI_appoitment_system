@@ -1,0 +1,10 @@
+from apps.models import Patient
+from django.utils import timezone
+from datetime import timedelta
+
+one_year_ago = timezone.now() - timedelta(days=365)
+
+# Delete patients registered more than 1 year ago
+deleted_count, _ = Patient.objects.filter(registration_date__lt=one_year_ago).delete()
+
+print(f"{deleted_count} patients older than 1 year deleted.")

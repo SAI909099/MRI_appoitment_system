@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Bemor ro‘yxatdan o‘tkazish{% endblock %}
+
+{% block content %}
+    <h1>📝 Bemor ro‘yxatdan o‘tkazish</h1>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="first_name">Ism:</label>
+            <input type="text" name="first_name" id="first_name" placeholder="Ism" required>
+        </div>
+
+        <div class="form-group">
+            <label for="last_name">Familiya:</label>
+            <input type="text" name="last_name" id="last_name" placeholder="Familiya" required>
+        </div>
+
+        <div class="form-group">
+            <label for="birth_year">Tug‘ilgan yil:</label>
+            <input type="number" name="birth_year" id="birth_year" placeholder="Masalan: 1990" required>
+        </div>
+
+        <div class="form-group">
+            <label for="phone_number">📞 Telefon raqami:</label>
+            <input type="text" name="phone_number" id="phone_number" placeholder="Masalan: +998901234567">
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Eslatmalar (ixtiyoriy):</label>
+            <textarea name="notes" id="notes" placeholder="Eslatmalar"></textarea>
+        </div>
+
+        <div class="form-group">
+            <h3>🧠 Skani qilinadigan joylar:</h3>
+            {% for bp in body_parts %}
+                <label>
+                    <input type="checkbox" name="body_parts" value="{{ bp.id }}">
+                    {{ bp.name }} ({{ bp.price|floatformat:0 }} so‘m)
+                </label><br>
+            {% endfor %}
+        </div>
+
+        <hr>
+
+        <div class="form-group">
+            <label for="payment_method">💳 To‘lov turi:</label>
+            <select name="payment_method" id="payment_method" required>
+                <option value="">Tanlang</option>
+                <option value="naqd">Naqd</option>
+                <option value="karta">Karta</option>
+                <option value="naqd_karta">Naqd + Karta</option>
+                <option value="none">To‘lov yo‘q</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="partial_paid">💰 To‘langan summa (so‘m):</label>
+            <input type="number" step="0.01" name="partial_paid" id="partial_paid" placeholder="Masalan: 100000">
+        </div>
+
+        <button type="submit">Saqlash</button>
+    </form>
+{% endblock %}

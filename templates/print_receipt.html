@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Chek - {{ patient.first_name }}{% endblock %}
+{% block content %}
+    <h2>To‘lov cheki</h2>
+    <div id="receipt">
+        <p><strong>Navbat raqami:</strong> {{ patient.appointment_number }}</p>
+        <p><strong>Ism:</strong> {{ patient.first_name }}</p>
+        <p><strong>Familiya:</strong> {{ patient.last_name }}</p>
+        <p><strong>Tana qismlari:</strong>
+            {% for bp in patient.body_parts.all %}
+                {{ bp.name }} ({{ bp.price }} so'm){% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        </p>
+        <p><strong>Jami:</strong> {{ total_price }} so‘m</p>
+        <p><strong>To‘langan:</strong> {{ patient.partial_paid }} so‘m</p>
+        {% if payment_method %}
+            <p><strong>To‘lov turi:</strong> {{ payment_method }}</p>
+        {% endif %}
+        <p><strong>Vaqti:</strong> {{ patient.registration_date }}</p>
+
+        {% if qr_base64 %}
+            <img src="data:image/png;base64,{{ qr_base64 }}" alt="QR code" style="max-width:200px;">
+        {% endif %}
+    </div>
+
+    <button onclick="window.print()">🖨 Chop etish</button>
+    <a href="{% url 'patient_list' %}">⬅ Orqaga</a>
+{% endblock %}

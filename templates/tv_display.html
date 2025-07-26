@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% block title %}TV displey{% endblock %}
+
+{% block content %}
+
+<meta http-equiv="refresh" content="10">
+
+<style>
+    .sidebar { display: none !important; }
+    .content { margin-left: 0 !important; }
+
+    body {
+        background: #f4f4f4;
+        font-family: Arial, sans-serif;
+        color: #222;
+        margin: 0;
+        padding-bottom: 120px; /* Space for ticker */
+    }
+
+    h1 {
+        text-align: center;
+        font-size: 48px;
+        margin: 20px 0;
+    }
+
+    .top-section {
+        text-align: center;
+        margin: 40px 0;
+    }
+
+    .top-section h2 {
+        font-size: 36px;
+        margin-bottom: 20px;
+        color: #333;
+        border-bottom: 3px solid #ccc;
+        display: inline-block;
+        padding-bottom: 8px;
+    }
+
+    .patient {
+        font-size: 32px;
+        background: #fff;
+        padding: 14px 24px;
+        margin: 10px auto;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border-radius: 8px;
+        font-weight: bold;
+        max-width: 700px;
+    }
+
+    .bottom-sections {
+        display: flex;
+        justify-content: space-around;
+        padding: 0 20px;
+        flex-wrap: wrap;
+    }
+
+    .section {
+        flex: 1 1 45%;
+        margin: 20px;
+        min-width: 400px;
+    }
+
+    .section h2 {
+        font-size: 28px;
+        border-bottom: 2px solid #ccc;
+        padding-bottom: 6px;
+        margin-bottom: 16px;
+    }
+
+    .section .patient {
+        font-size: 28px;
+        padding: 12px 18px;
+        margin: 8px 0;
+    }
+
+    .no-patient {
+        background: #fafafa;
+        color: #777;
+        font-weight: normal;
+        font-size: 24px;
+        padding: 14px;
+        border-radius: 8px;
+    }
+
+    /* ----------- Ticker ----------- */
+    .ticker {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        height: 100px;
+        width: 100%;
+        background: #111;
+        color: #fff;
+        overflow: hidden;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+    }
+
+    .ticker__inner {
+        white-space: nowrap;
+        display: inline-block;
+        padding-left: 100%;
+        animation: ticker-move 40s linear infinite;
+        font-size: 32px;
+    }
+
+    .ticker__item {
+        display: inline-block;
+        margin-right: 60px;
+    }
+
+    .ticker__item.emergency {
+        color: #ff4242;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-right: 120px;
+    }
+
+    @keyframes ticker-move {
+        0%   { transform: translateX(0); }
+        100% { transform: translateX(-100%); }
+    }
+</style>
+
+<h1>MRT Navbatlar</h1>
+
+<div class="top-section">
+    <h2>Kirishi kerak bo‘lgan bemorlar</h2>
+    {% with found=0 %}
+    {% for patient in patients %}
+        {% if not patient.missed and not patient.registered %}
+            {% with found=1 %}
+            <div class="patient">{{ patient.appointment_number }} - {{ patient.first_name }} {{ patient.last_name }}</div>
+            {% endwith %}
+        {% endif %}
+    {% endfor %}
+    {% if not found %}
+        <div class="no-patient"> </div>
+    {% endif %}
+    {% endwith %}
+</div>
+
+<div class="bottom-sections">
+    <div class="section">
+        <h2>Navbatda turgan bemorlar</h2>
+        {% with found=0 %}
+        {% for patient in patients %}
+            {% if patient.registered and not patient.missed %}
+                {% with found=1 %}
+                <div class="patient">{{ patient.appointment_number }} - {{ patient.first_name }} {{ patient.last_name }}</div>
+                {% endwith %}
+            {% endif %}
+        {% endfor %}
+        {% if not found %}
+            <div class="no-patient"> </div>
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="section">
+        <h2>Navbati o‘tib ketgan bemorlar</h2>
+        {% with found=0 %}
+        {% for patient in patients %}
+            {% if patient.missed %}
+                {% with found=1 %}
+                <div class="patient">{{ patient.appointment_number }} - {{ patient.first_name }} {{ patient.last_name }}</div>
+                {% endwith %}
+            {% endif %}
+        {% endfor %}
+        {% if not found %}
+            <div class="no-patient"> </div>
+        {% endif %}
+        {% endwith %}
+    </div>
+</div>
+
+<!-- Bottom Ticker -->
+<div class="ticker">
+    <div class="ticker__inner" id="tickerInner">
+        <span class="ticker__item emergency">
+            !!! TEZ TIBBIY YORDAM MASHINASIDA KELGAN ODAM UCHUN NAVBATSIZ — Tel: {{ emergency_phone }}
+        </span>
+        {% for bp in body_parts %}
+            <span class="ticker__item">{{ bp.name }} — {{ bp.price|floatformat:0 }} so'm</span>
+        {% endfor %}
+        <span class="ticker__item emergency">
+            !!! TEZ TIBBIY YORDAM MASHINASIDA KELGAN ODAM UCHUN NAVBATSIZ — Tel: {{ emergency_phone }}
+        </span>
+        {% for bp in body_parts %}
+            <span class="ticker__item">{{ bp.name }} — {{ bp.price|floatformat:0 }} so'm</span>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- JS: ticker scroll offset -->
+<script>
+    const ticker = document.getElementById('tickerInner');
+    const speed = 40;
+    const key = 'tv_ticker_start';
+
+    function getOffset() {
+        const start = parseFloat(localStorage.getItem(key) || '0');
+        const now = Date.now();
+        const diff = (now - start) / 1000;
+        const offset = (diff % speed).toFixed(2);
+        return offset;
+    }
+
+    function applyOffset() {
+        const offset = getOffset();
+        ticker.style.animation = 'none';
+        void ticker.offsetWidth;
+        ticker.style.animation = `ticker-move ${speed}s linear infinite`;
+        ticker.style.animationDelay = `-${offset}s`;
+    }
+
+    function storeStart() {
+        localStorage.setItem(key, Date.now().toString());
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        applyOffset();
+        storeStart();
+    });
+</script>
+
+{% endblock %}

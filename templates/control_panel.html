@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Kontroll paneli{% endblock %}
+
+{% block content %}
+<h1>🛠 Kontroll paneli</h1>
+
+<h2>➕ Yangi tana qismini qo‘shish</h2>
+<form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="body_part">Tana qismi nomi:</label>
+        <input type="text" id="body_part" name="body_part" placeholder="Masalan: Bosh, Tizza..." required>
+    </div>
+    <div class="form-group">
+        <label for="price">Narxi (so‘m):</label>
+        <input type="number" id="price" name="price" step="0.01" placeholder="Masalan: 150000.00" required>
+    </div>
+    <button type="submit">Qo‘shish</button>
+</form>
+
+<hr>
+
+<h2>📋 Tana qismlari ro‘yxati</h2>
+{% if body_parts %}
+<table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Tana qismi</th>
+            <th>Narx</th>
+            <th>Amallar</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for bp in body_parts %}
+        <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ bp.name }}</td>
+            <td>{{ bp.price|floatformat:0 }} so‘m</td>
+            <td>
+                <button type="button"
+                        onclick="openEditModal('{{ bp.id }}', '{{ bp.name }}', '{{ bp.price }}')">✏️ Tahrirlash</button>
+                <form method="post" action="{% url 'delete_body_part' bp.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" onclick="return confirm('Haqiqatan ham o‘chirmoqchimisiz?')">🗑 O‘chirish</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>⛔ Hozircha hech qanday tana qismi qo‘shilmagan.</p>
+{% endif %}
+
+<!-- Edit Modal -->
+<div id="editModal" style="display:none; position:fixed; top:20%; left:30%; background:white; padding:20px; border:1px solid #ccc; z-index:1000;">
+    <h3>✏️ Tana qismini tahrirlash</h3>
+    <form method="post" id="editForm">
+        {% csrf_token %}
+        <input type="hidden" name="body_part_id" id="editBodyPartId">
+        <div class="form-group">
+            <label for="editName">Tana qismi nomi:</label>
+            <input type="text" name="name" id="editName" required>
+        </div>
+        <div class="form-group">
+            <label for="editPrice">Narxi (so‘m):</label>
+            <input type="number" name="price" id="editPrice" step="0.01" required>
+        </div>
+        <button type="submit" formaction="{% url 'edit_body_part' %}">Saqlash</button>
+        <button type="button" onclick="closeEditModal()">Bekor qilish</button>
+    </form>
+</div>
+
+<!-- Overlay -->
+<div id="modalOverlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.4); z-index:999;" onclick="closeEditModal()"></div>
+
+<script>
+function openEditModal(id, name, price) {
+    document.getElementById('editBodyPartId').value = id;
+    document.getElementById('editName').value = name;
+    document.getElementById('editPrice').value = price;
+    document.getElementById('editModal').style.display = 'block';
+    document.getElementById('modalOverlay').style.display = 'block';
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+    document.getElementById('modalOverlay').style.display = 'none';
+}
+</script>
+{% endblock %}
